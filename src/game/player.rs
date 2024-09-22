@@ -5,7 +5,7 @@ NOTE:
  - On devrait probablement pas toujours garder tous les decks du player pour ne pas que pendant qu'il joue une partie, il garde tout ses decks en mémoires.
  -
  **/
-struct Player {
+pub struct Player {
     id_player: u32,     // unique identifier
     name: String,       // in game name
     decks: vec<Deck>,   // all of the decks of a player
@@ -23,6 +23,8 @@ impl Player {
             id_player,
             name,
             // ADD DECK Constructor
+            decks: ,
+            deck_current: ,
             hp_max: 100,
             hp_current: 100,
             ap_max: 10,
