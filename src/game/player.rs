@@ -17,23 +17,20 @@ struct Player {
 }
 
 impl Player {
-
-    fn new(id: u32, name: String) -> Self {
+    fn new(id_player: u32, name: String) -> Self {
         // NOTE: les hp et ap vont possiblement varier selon le mode de jeux. Possiblement les add en paramètres ou ajouter un autre constructeur plus tard
-        Player{
-            id,
+        Player {
+            id_player,
             name,
             // ADD DECK Constructor
-            100, // hp_max
-            100, // hp_current
-            10,  // ap_max
-            10   // current_ap
+            hp_max: 100,
+            hp_current: 100,
+            ap_max: 10,
+            ap_current: 10,
         }
     }
 
-
     fn playCard(&mut self, index: u32) {
-
         // Check if the index is within bounds
         if index >= self.deck_current.cards_unplayed.len() {
             println("Invalid card index!");
@@ -55,15 +52,10 @@ impl Player {
         }
     }
 
-
-    fn updateHp(&mut self, amount: u32){
+    fn updateHp(&mut self, amount: u32) {
         self.hp_current += amount;
     }
 
     // before each game, player current stats are reset to max stats
-    fn reset_player(){
-
-    }
-
-
+    fn reset_player() {}
 }
