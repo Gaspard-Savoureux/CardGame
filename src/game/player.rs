@@ -1,3 +1,5 @@
+use super::deck::Deck;
+
 /**
 NOTE:
  - On devrait probablement pas toujours garder tous les decks du player pour ne pas que pendant qu'il joue une partie, il garde tout ses decks en mémoires.
@@ -16,7 +18,7 @@ struct Player {
 
 impl Player {
 
-    fn new(id: u32, name: string) -> Self {
+    fn new(id: u32, name: String) -> Self {
         // NOTE: les hp et ap vont possiblement varier selon le mode de jeux. Possiblement les add en paramètres ou ajouter un autre constructeur plus tard
         Player{
             id,
