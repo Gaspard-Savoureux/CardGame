@@ -1,5 +1,10 @@
+/**
+NOTE:
+ - On devrait probablement pas toujours garder tous les decks du player pour ne pas que pendant qu'il joue une partie, il garde tout ses decks en mémoires.
+ -
+ **/
 struct Player {
-    id_player: u32,            // unique identifier
+    id_player: u32,     // unique identifier
     name: String,       // in game name
     decks: vec<Deck>,   // all of the decks of a player
     deck_current: Deck, // the current deck of a player
@@ -12,14 +17,15 @@ struct Player {
 impl Player {
 
     fn new(id: u32, name: string) -> Self {
+        // NOTE: les hp et ap vont possiblement varier selon le mode de jeux. Possiblement les add en paramètres ou ajouter un autre constructeur plus tard
         Player{
             id,
             name,
             // ADD DECK Constructor
-            100,
-            100,
-            10,
-            10
+            100, // hp_max
+            100, // hp_current
+            10,  // ap_max
+            10   // current_ap
         }
     }
 
