@@ -5,3 +5,5 @@ edition = "2021"
 keywords = ["cards", "game", "steam"]
 
 [dependencies]
+macroquad = "0.4.13"
+macroquad-tiled = "0.2.1"
