@@ -1,9 +1,10 @@
 mod game;
 use std::collections::HashMap;
 
-use game::isometric_manipulation::*;
+use game::card::{Card, CardBasicInfo};
 use game::keymapping::apply_input;
 use game::ui::*;
+use game::{card::CreatureCard, isometric_manipulation::*};
 use macroquad::{prelude::*, ui::root_ui};
 use macroquad_tiled::{self as tiled};
 
@@ -70,18 +71,31 @@ async fn main() {
     let layer = &tiled_map.layers["main layer"];
 
     let cam_area = vec2(32. * 24., 32. * 18.);
-    // let cam_area = vec2(768., 576.);
     // Assumption here is the world origin is 0, 0.
     let cam_pos = vec2(-cam_area.x / 2., -cam_area.y / 2.);
-    // let cam_pos = vec2(-cam_area.x / 2., -cam_area.y / 2.);
     let camera =
-        // Camera2D::from_display_rect(Rect::new(0., 0., screen_width(), screen_height()));
-    Camera2D::from_display_rect(Rect::new(cam_pos.x, -cam_pos.y, cam_area.x, -cam_area.y));
+        Camera2D::from_display_rect(Rect::new(cam_pos.x, -cam_pos.y, cam_area.x, -cam_area.y));
 
     let mut ctx: Context = Context {
         camera: camera,
         last_mouse_position: mouse_position().into(),
     };
+
+    // let mut cartes = Vec::new();
+
+    let creature_card: Card = game::card::Card::Creature(CreatureCard::new(
+        CardBasicInfo {
+            name: "Goblin".to_string(),
+            description: "Vilest of creatures.\nHostile to all and detesable to it's very core.\nNo guilt must be felt when killing one.".to_string(),
+            cost: 1,
+            counter: None,
+            card_color: BEIGE,
+        },
+        20,
+        4,
+    ));
+
+    // cartes.push(carte);
     loop {
         clear_background(GRAY);
         if settings.dark_theme {
@@ -126,6 +140,9 @@ async fn main() {
         // 2D context
         set_default_camera();
         draw_text(game_name, 10.0, 20.0, 30.0, text_color);
+
+        // Hand
+        creature_card.draw_card(20., screen_height() - 160., 200., 300., 16., text_color);
 
         // Buttons
         let (_, skin) = settings.skin.get_key_value(&"Default".to_string()).unwrap();
