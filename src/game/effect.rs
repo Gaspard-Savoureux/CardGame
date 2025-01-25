@@ -1,30 +1,15 @@
-use super::{card::CreatureCard, player::Player};
+use super::{card::CreatureCard, life::HasLife, player::Player};
 
-// NOTE: pas encore sur de l'implémentation
-// enum Effect {
-//     TargettedCardEffect(TargettedCardEffect),
-//     CardEffect(CardEffect),
-//     // Targets entities with life
-//     Damage(TargettedCardEffect),
-//     Heal(TargettedCardEffect),
-
-//     // Target entities on the case
-//     Summon(TargettedCardEffect),
-
-//     // Time
-//     ChangeRound(CardEffect),
-// }
-
-enum EffectType {
+pub enum EffectType {
     Heal,
     Damage,
     Move,
     Summon,
 }
 
-enum Target {
-    Creature(Box<CreatureCard>),
-    Player(Box<Player>),
+pub enum Target {
+    Creature(CreatureCard),
+    Player(Player),
 }
 
 pub struct TargettedCardEffect {
@@ -33,17 +18,21 @@ pub struct TargettedCardEffect {
 }
 
 pub struct Effect {
-    effect_type: EffectType,
-    target: Target,
-    nb: u32, // num of damage, heal, summon, etc.
+    pub effect_type: EffectType,
+    pub nb: u32, // num of damage, heal, summon, etc.
 }
 
 impl Effect {
-    fn new(effect_type: EffectType, target: Target, nb: u32) -> Self {
-        Effect {
-            effect_type,
-            target,
-            nb,
+    fn new(effect_type: EffectType, nb: u32) -> Self {
+        Effect { effect_type, nb }
+    }
+
+    pub fn affect_target<T: HasLife>(&self, target: &mut T) {
+        match self.effect_type {
+            EffectType::Heal => target.heal(self.nb),
+            EffectType::Damage => target.damage(self.nb),
+            EffectType::Move => todo!(),
+            EffectType::Summon => todo!(),
         }
     }
 }

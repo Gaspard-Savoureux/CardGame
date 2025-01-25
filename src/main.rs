@@ -1,9 +1,12 @@
 mod game;
 use std::collections::HashMap;
 
-use game::isometric_manipulation::*;
+use game::card::{Card, CardBasicInfo, EffectCard};
+use game::effect::{Effect, EffectType};
+use game::hand::Hand;
 use game::keymapping::apply_input;
 use game::ui::*;
+use game::{card::CreatureCard, isometric_manipulation::*};
 use macroquad::{prelude::*, ui::root_ui};
 use macroquad_tiled::{self as tiled};
 
@@ -40,7 +43,7 @@ fn format_digit(mut digit: usize, nb_displayed_digit: usize) -> String {
 }
 #[macroquad::main("CardGame")]
 async fn main() {
-    let mut game_name = "Funny Game";
+    let game_name = "Funny Game";
     let mut text_color: Color;
 
     let mut settings = Settings::builder()
@@ -70,18 +73,59 @@ async fn main() {
     let layer = &tiled_map.layers["main layer"];
 
     let cam_area = vec2(32. * 24., 32. * 18.);
-    // let cam_area = vec2(768., 576.);
     // Assumption here is the world origin is 0, 0.
     let cam_pos = vec2(-cam_area.x / 2., -cam_area.y / 2.);
-    // let cam_pos = vec2(-cam_area.x / 2., -cam_area.y / 2.);
     let camera =
-        // Camera2D::from_display_rect(Rect::new(0., 0., screen_width(), screen_height()));
-    Camera2D::from_display_rect(Rect::new(cam_pos.x, -cam_pos.y, cam_area.x, -cam_area.y));
+        Camera2D::from_display_rect(Rect::new(cam_pos.x, -cam_pos.y, cam_area.x, -cam_area.y));
 
     let mut ctx: Context = Context {
         camera: camera,
         last_mouse_position: mouse_position().into(),
     };
+
+    let creature_card: Card = game::card::Card::Creature(CreatureCard::new(
+        CardBasicInfo {
+            name:"Goblin".to_string(), 
+            description:"Vilest of creatures.\nHostile to all and detesable to it's very core.\nNo guilt must be felt when killing one.".to_string(),
+            cost:1,
+            // counter:None,
+            card_color:BEIGE,
+            },
+        4,
+        4,
+    ));
+
+    let creature_card2: Card = game::card::Card::Creature(CreatureCard::new(
+        CardBasicInfo {
+            name: "Monkey".to_string(),
+            description: "Likes banana".to_string(),
+            cost: 1,
+            // counter: None,
+            card_color: BEIGE,
+        },
+        4,
+        4,
+    ));
+
+    let effect_card: Card = game::card::Card::Effect(EffectCard::new(
+        CardBasicInfo {
+            name: "Fire Ball".to_string(),
+            description: "One of the most elemental spell, yet a spell to be feared".to_string(),
+            cost: 2,
+            // counter: Some(0),
+            card_color: RED,
+        },
+        Effect {
+            effect_type: EffectType::Damage,
+            nb: 4,
+        },
+    ));
+
+    let mut hand = Hand::new((screen_width() * 0.2, screen_height() * 0.3), 1.4);
+    hand.add_card(creature_card);
+    hand.add_card(effect_card);
+    hand.add_card(creature_card2);
+
     loop {
         clear_background(GRAY);
         if settings.dark_theme {
@@ -126,6 +170,17 @@ async fn main() {
         // 2D context
         set_default_camera();
         draw_text(game_name, 10.0, 20.0, 30.0, text_color);
+
+        // Hand
+        hand.display_hand(16., text_color);
+
+        draw_text(
+            &format!("hovered_card: {}", hand.hovered_card),
+            10.0,
+            60.0,
+            30.0,
+            text_color,
+        );
 
         // Buttons
         let (_, skin) = settings.skin.get_key_value(&"Default".to_string()).unwrap();

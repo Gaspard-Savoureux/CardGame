@@ -181,8 +181,8 @@ pub fn show_settings(settings: &mut Settings) {
         });
 }
 
-/// Shows debuging info such as camera position, pitch, yaw, current screen size, etc.
-pub fn show_debug_info(ctx: &Context, settings: &Settings, text_color: Color) {
+/// Shows debuging info such as camera position, current screen size, cursor position, etc.
+pub fn show_debug_info(ctx: &Context, _settings: &Settings, text_color: Color) {
     // Current screen size
     draw_text(
         &format!(
@@ -207,12 +207,26 @@ pub fn show_debug_info(ctx: &Context, settings: &Settings, text_color: Color) {
         20.0,
         text_color,
     );
-    // Cursor position
+
+    // Cursor position global
     let mouse_in_world = ctx.camera.screen_to_world(mouse_position().into());
     draw_text(
-        &format!("Cursor at position: {}", world_to_map(mouse_in_world)),
+        &format!("Cursor at position: {}", mouse_in_world),
         10.0,
         100.0,
+        20.0,
+        text_color,
+    );
+
+    // Cursor position in isometric context
+    let mouse_in_world = ctx.camera.screen_to_world(mouse_position().into());
+    draw_text(
+        &format!(
+            "Cursor at position in isometric context: {}",
+            world_to_map(mouse_in_world)
+        ),
+        10.0,
+        130.0,
         20.0,
         text_color,
     );
