@@ -2,9 +2,9 @@
 
 A simple 2D card game with isometric view built with Rust and Macroquad. This project was created to explore game development concepts in Rust and gain familiarity with Macroquad for rendering and game loop management.
 
-> NOTE: The name is plural because it we possibly intented to make multiple small games. Will possibly be renamed
+> NOTE: The name is plural because I possibly intented to make multiple small games. Will possibly be renamed
 
-Gif that will be showing the current state of the game:
+Gif showing the current state of the game:
 ![demo](/pictures/cardgames_demo.gif)
 
 ## Table of content:
