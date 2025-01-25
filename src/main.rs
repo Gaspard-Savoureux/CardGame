@@ -97,7 +97,7 @@ async fn main() {
 
     let creature_card2: Card = game::card::Card::Creature(CreatureCard::new(
         CardBasicInfo {
-            name: "Monkey".to_string(),
+            name: "Monkey Knight".to_string(),
             description: "Likes banana".to_string(),
             cost: 1,
             // counter: None,
@@ -110,7 +110,7 @@ async fn main() {
     let effect_card: Card = game::card::Card::Effect(EffectCard::new(
         CardBasicInfo {
             name: "Fire Ball".to_string(),
-            description: "One of the most elemental spell, yet a spell to be feared".to_string(),
+            description: "One of the most simple spell, yet a spell to be feared".to_string(),
             cost: 2,
             // counter: Some(0),
             card_color: RED,
@@ -121,7 +121,7 @@ async fn main() {
         },
     ));
 
-    let mut hand = Hand::new((screen_width() * 0.2, screen_height() * 0.3), 1.4);
+    let mut hand = Hand::new(1.4, (screen_width() * 0.2, screen_height() * 0.3));
     hand.add_card(creature_card);
     hand.add_card(effect_card);
     hand.add_card(creature_card2);
