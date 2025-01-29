@@ -62,3 +62,7 @@ cargo run
 -   **keymapping.rs**: Input handling.
 -   **ui.rs**: Show general ui elements (will possibly be renamed).
 -   **TO COMPLETE**
+
+### Source for the assets in the [assets](/assets/) folder:
+
+**Tileset:** https://scrabling.itch.io/pixel-isometric-tiles
