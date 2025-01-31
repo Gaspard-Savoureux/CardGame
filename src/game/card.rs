@@ -1,9 +1,11 @@
 use macroquad::{
-    color::{Color, BLACK, BLUE, GREEN},
+    color::{Color, BLACK, BLUE, DARKGREEN, GREEN, LIME},
     input::mouse_position,
     math::Rect,
     shapes::{draw_poly, draw_rectangle, draw_rectangle_lines},
     text::{draw_multiline_text, draw_text},
+    texture::{draw_texture, load_texture, Texture2D},
+    time::get_time,
 };
 
 use super::{effect::Effect, life::HasLife};
@@ -34,16 +36,63 @@ pub struct CreatureCard {
     pub hp_max: u32,
     /// Total movement the creature can do
     pub movement: u32,
+    /// TODO the following will need to have its own struct for animations
+    img_path: &'static str,
+    nb_animation_frame: usize,
+    current_animation_frame: usize,
+    texture: Vec<Texture2D>,
+    time_elapsed: f64,
 }
 
 impl CreatureCard {
-    pub fn new(basic_info: CardBasicInfo, hp_max: u32, movement: u32) -> Self {
+    pub fn new(
+        basic_info: CardBasicInfo,
+        hp_max: u32,
+        movement: u32,
+        img_path: &'static str,
+        nb_animation_frame: usize, // TODO will added automaticly based on the number of file with the name in creature assets
+    ) -> Self {
         CreatureCard {
             basic_info,
             hp_current: hp_max,
             hp_max,
             movement,
+            img_path,
+            nb_animation_frame,
+            current_animation_frame: 0,
+            texture: Vec::new(),
+            time_elapsed: 0.,
         }
+    }
+
+    pub async fn load_texture(&mut self) {
+        for i in 0..self.nb_animation_frame {
+            self.texture.push(
+                load_texture(&format!("{}-{}.png", &self.img_path, i))
+                    .await
+                    .unwrap(),
+            );
+        }
+    }
+
+    pub fn draw_creature(&mut self, x: f32, y: f32, color: Color) {
+        let time = get_time();
+        let diff = time - self.time_elapsed;
+
+        // TODO replace the 0.5 by a custom animation speed
+        if diff >= 0.5 {
+            self.current_animation_frame =
+                (self.current_animation_frame + 1) % self.nb_animation_frame;
+            self.time_elapsed = get_time();
+        }
+
+        // println!("current_animation_frame: {}", self.current_animation_frame);
+        draw_texture(
+            &self.texture.get(self.current_animation_frame).unwrap(),
+            x,
+            y,
+            color,
+        );
     }
 }
 
@@ -190,6 +239,7 @@ pub struct DisplayedCard {
     pub current_dimensions: Rect, // x, y, w, h
     pub neighbour_start: f32, // Start of the next card, will allow us to not hover several card at once
                               // pub hovered: bool (could allow us to know which card is hovered and therefore playable later on)
+                              // pub selected: bool
 }
 
 impl DisplayedCard {
@@ -226,7 +276,7 @@ impl DisplayedCard {
         self.scale = DisplayedCard::max(self.scale - speed, 1.);
     }
 
-    pub fn display_card(&mut self, font_size: f32, font_color: Color) {
+    pub fn display_card(&mut self, font_size: f32, font_color: Color, is_selected: bool) {
         let scale = self.scale;
         let card = &self.card;
 
@@ -255,11 +305,26 @@ impl DisplayedCard {
         if self.card.is_hovered(hoverable_surface) {
             y = y * 0.6; // Move the card upward to not overlap other cards
             draw_rectangle(x, y, w, h, card.get_basic_info().card_color); // background
-            draw_rectangle_lines(x, y, w, h, 8., BLUE); // outline
+                                                                          // draw_rectangle_lines(x, y, w, h, 8., if is_selected { GREEN } else { BLUE }); // outline
+
+            // outline
+            // draw_rectangle_lines(x, y, w, h, 8., BLUE);
+            if is_selected {
+                draw_rectangle_lines(x, y, w, h, 8., LIME);
+            } else {
+                draw_rectangle_lines(x, y, w, h, 8., BLUE);
+            }
             self.increase_scale(0.2);
         } else {
             draw_rectangle(x, y, w, h, card.get_basic_info().card_color); // background
-            draw_rectangle_lines(x, y, w, h, 2., BLACK); // outline
+
+            // outline
+            if is_selected {
+                draw_rectangle_lines(x, y, w, h, 8., LIME);
+            } else {
+                draw_rectangle_lines(x, y, w, h, 2., BLACK);
+            }
+
             self.decrease_scale(0.5);
         }
 

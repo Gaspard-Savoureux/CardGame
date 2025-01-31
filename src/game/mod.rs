@@ -7,3 +7,4 @@ pub mod keymapping;
 pub mod life;
 pub mod player;
 pub mod ui;
+pub mod world;

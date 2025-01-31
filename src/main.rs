@@ -5,21 +5,33 @@ use game::card::{Card, CardBasicInfo, EffectCard};
 use game::effect::{Effect, EffectType};
 use game::hand::Hand;
 use game::keymapping::apply_input;
+
+use game::card::CreatureCard;
 use game::ui::*;
-use game::{card::CreatureCard, isometric_manipulation::*};
+use game::world::{map_to_world, world_to_map, World};
 use macroquad::{prelude::*, ui::root_ui};
 use macroquad_tiled::{self as tiled};
 
 // NOTE susceptible to change
-const TILE_SIZE: IVec2 = ivec2(32, 32);
+// const TILE_SIZE: IVec2 = ivec2(32, 32);
 const MAP_SIZE: IVec2 = ivec2(16, 16);
 const NB_TILE_TYPE: usize = 115;
 
 const CAM_SPEED: f32 = 10.;
 
+// enum Entity {
+//     Creature(CreatureCard),
+//     Player(Player),
+// }
+
 struct Context {
+    /// map_dimensions -> (width: u32, width: u32)
+    pub world: World,
     pub camera: Camera2D,
     pub last_mouse_position: Vec2,
+    pub hand: Hand,
+    /// Vec of creatures and their positions
+    pub creatures: Vec<(CreatureCard, IVec2)>,
 }
 
 fn format_digit(mut digit: usize, nb_displayed_digit: usize) -> String {
@@ -54,13 +66,13 @@ async fn main() {
         .build()
         .await;
 
-    let tileset = load_texture("assets/spritesheet.png").await.unwrap();
+    set_pc_assets_folder("assets");
+
+    let tileset = load_texture("spritesheet.png").await.unwrap();
     tileset.set_filter(FilterMode::Nearest);
 
-    let tiled_map_json = load_string("assets/map1.json").await.unwrap();
+    let tiled_map_json = load_string("map1.json").await.unwrap();
     let tiled_map = tiled::load_map(&tiled_map_json, &[("spritesheet.png", tileset)], &[]).unwrap();
-
-    set_pc_assets_folder("assets");
 
     let mut tiles_textures: Vec<Texture2D> = Vec::with_capacity(NB_TILE_TYPE);
 
@@ -71,6 +83,7 @@ async fn main() {
     }
 
     let layer = &tiled_map.layers["main layer"];
+    // let layer = tiled_map.raw_tiled_map;
 
     let cam_area = vec2(32. * 24., 32. * 18.);
     // Assumption here is the world origin is 0, 0.
@@ -79,8 +92,11 @@ async fn main() {
         Camera2D::from_display_rect(Rect::new(cam_pos.x, -cam_pos.y, cam_area.x, -cam_area.y));
 
     let mut ctx: Context = Context {
+        world: World::new(layer.width, layer.height),
         camera: camera,
         last_mouse_position: mouse_position().into(),
+        hand: Hand::new(1.4, (screen_width() * 0.2, screen_height() * 0.3)),
+        creatures: Vec::new(),
     };
 
     let creature_card: Card = game::card::Card::Creature(CreatureCard::new(
@@ -93,6 +109,8 @@ async fn main() {
             },
         4,
         4,
+        "creatures/goblin/goblin",
+        2,
     ));
 
     let creature_card2: Card = game::card::Card::Creature(CreatureCard::new(
@@ -104,6 +122,8 @@ async fn main() {
             card_color: BEIGE,
         },
         4,
+        4,
+        "/creatures/monkey_knight/monkey_knight",
         4,
     ));
 
@@ -121,10 +141,9 @@ async fn main() {
         },
     ));
 
-    let mut hand = Hand::new(1.4, (screen_width() * 0.2, screen_height() * 0.3));
-    hand.add_card(creature_card);
-    hand.add_card(effect_card);
-    hand.add_card(creature_card2);
+    ctx.hand.add_card(creature_card);
+    ctx.hand.add_card(effect_card);
+    ctx.hand.add_card(creature_card2);
 
     loop {
         clear_background(GRAY);
@@ -140,7 +159,7 @@ async fn main() {
         if is_key_pressed(KeyCode::Q) {
             break;
         }
-        apply_input(&mut ctx, &mut settings);
+        apply_input(&mut ctx, &mut settings).await;
 
         // Draw tiles in camera perspective
         set_camera(&ctx.camera);
@@ -159,7 +178,7 @@ async fn main() {
                 let world_pos = map_to_world(ivec2(x, y));
 
                 // When hovering tile
-                if ivec2(x, y) == world_to_map(mouse_in_world) {
+                if ivec2(x, y) == world_to_map(mouse_in_world) && ctx.hand.card_is_selected() {
                     draw_texture(&texture, world_pos.x - 0.8, world_pos.y - 0.8, GREEN);
                 } else {
                     draw_texture(&texture, world_pos.x, world_pos.y, WHITE);
@@ -167,20 +186,24 @@ async fn main() {
             }
         }
 
+        // Draw goblin
+        // draw_texture(&goblin, 8., 8., WHITE);
+
+        // Draw creatures
+        for (creature, pos) in &mut ctx.creatures {
+            // let IVec2 { x, y } = pos;
+            // let Vec2 { x, y } = map_to_world(IVec2 { x: x - 1, y: y + 1 });
+            let Vec2 { x, y } = map_to_world(*pos);
+            creature.draw_creature(x, y - 8., WHITE);
+            // draw_texture(&creature.texture.as_ref().unwrap(), x, y - 8., WHITE);
+        }
+
         // 2D context
         set_default_camera();
         draw_text(game_name, 10.0, 20.0, 30.0, text_color);
 
         // Hand
-        hand.display_hand(16., text_color);
-
-        draw_text(
-            &format!("hovered_card: {}", hand.hovered_card),
-            10.0,
-            60.0,
-            30.0,
-            text_color,
-        );
+        ctx.hand.display_hand(16., text_color);
 
         // Buttons
         let (_, skin) = settings.skin.get_key_value(&"Default".to_string()).unwrap();

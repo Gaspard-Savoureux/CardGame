@@ -17,7 +17,7 @@ pub const KEY_MAPPINGS: [(&str, &str); 10] = [
 
 /// Apply the input given by the user.
 ///
-pub fn apply_input(ctx: &mut Context, settings: &mut Settings) {
+pub async fn apply_input(ctx: &mut Context, settings: &mut Settings) {
     #[cfg_attr(any(), rustfmt::skip)]
     { // Camera related //
     // Camera mouvements with keyboard
@@ -33,8 +33,10 @@ pub fn apply_input(ctx: &mut Context, settings: &mut Settings) {
     ctx.last_mouse_position = mouse_position;
 
     // NOTE possibly increase the CAM_SPEED for this is currently a bit awkward
-    if is_mouse_button_down(MouseButton::Left) { ctx.camera.target.x -= mouse_delta.x * delta * CAM_SPEED; }
-    if is_mouse_button_down(MouseButton::Left) { ctx.camera.target.y -= mouse_delta.y * delta * CAM_SPEED; }
+    if is_mouse_button_down(MouseButton::Left) && !ctx.hand.card_is_hovered() { 
+        ctx.camera.target.x -= mouse_delta.x * delta * CAM_SPEED;
+        ctx.camera.target.y -= mouse_delta.y * delta * CAM_SPEED; 
+    }
 
     // mouse_wheel zoom
     let (_, scroll_y) = mouse_wheel();
@@ -53,5 +55,21 @@ pub fn apply_input(ctx: &mut Context, settings: &mut Settings) {
     if is_key_pressed(KeyCode::K)      { settings.toggle_display_keymapping(); }
     if is_key_pressed(KeyCode::B)      { settings.toggle_debug(); }
     if is_key_pressed(KeyCode::T)      { settings.switch_theme(); }
+    }
+
+    #[cfg_attr(any(), rustfmt::skip)]
+    { // Game related //
+    // Card selection
+    if is_mouse_button_pressed(MouseButton::Left) && ctx.hand.card_is_hovered() { 
+        ctx.hand.select_hovered_card();
+    }
+
+    // Playing card
+    if ctx.hand.card_is_selected() &&
+       is_mouse_button_pressed(MouseButton::Left) &&
+       ctx.world.cursor_within_map(&ctx.camera)
+    {
+        ctx.hand.play_card(&mut ctx.creatures, ctx.world.cursor_position(&ctx.camera)).await;
+    }
     }
 }

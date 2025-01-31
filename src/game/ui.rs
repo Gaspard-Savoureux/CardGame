@@ -7,8 +7,9 @@ use macroquad::ui::{
     Skin,
 };
 
-use crate::world_to_map;
 use crate::{game::keymapping::KEY_MAPPINGS, Context};
+
+use super::world::world_to_map;
 
 /// set the default style here
 pub async fn default_skin() -> Skin {
@@ -227,6 +228,24 @@ pub fn show_debug_info(ctx: &Context, _settings: &Settings, text_color: Color) {
         ),
         10.0,
         130.0,
+        20.0,
+        text_color,
+    );
+
+    // Hovered card index
+    draw_text(
+        &format!("hovered_card: {}", ctx.hand.hovered_card),
+        10.0,
+        160.0,
+        20.0,
+        text_color,
+    );
+
+    // Selected card index
+    draw_text(
+        &format!("selected_card: {}", ctx.hand.selected_card),
+        10.0,
+        190.0,
         20.0,
         text_color,
     );
