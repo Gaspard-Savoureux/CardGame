@@ -1,16 +1,10 @@
 use macroquad::{
     color::Color,
-    input::mouse_position,
     math::{IVec2, Rect},
     window::{screen_height, screen_width},
 };
 
-use crate::Context;
-
 use super::card::{Card, CreatureCard, DisplayedCard};
-
-/// Beginning of the hand on the screen
-const HAND_START: f32 = 20.;
 
 /// Represents a player's hand
 pub struct Hand {
@@ -45,7 +39,7 @@ impl Hand {
         }
     }
 
-    pub fn add_card(&mut self, card: Card) {
+    pub async fn add_card(&mut self, mut card: Card) {
         // Both base_dimensions and neighbour_start are set to 0. because they will be replace adjusted automatically in update_card_to_screen
         let base_dimensions = Rect {
             x: 0.,
@@ -55,8 +49,11 @@ impl Hand {
         };
         let neighbour_start = 0.;
 
+        card.load_texture().await;
+
         let new_card_to_display =
             DisplayedCard::new(card, self.hovered_scale, base_dimensions, neighbour_start);
+
         self.card_in_hands.push(new_card_to_display);
     }
 
@@ -90,30 +87,22 @@ impl Hand {
     // fn select_card_target(&self, ctx: &Context) {
     //     let mouse_in_world = ctx.camera.screen_to_world(mouse_position().into());
     // }
+
     /// Play a card that is hovered
     ///
     /// If no card is hovered, nothing is done without panicking
     pub async fn play_card(&mut self, creatures: &mut Vec<(CreatureCard, IVec2)>, pos: IVec2) {
-        // let hovered_card = self.hovered_card;
-
         assert!(self.selected_card != -1);
 
         let card = self.card_in_hands.remove(self.selected_card as usize);
         match card.card {
-            Card::Creature(mut creature_card) => {
-                creature_card.load_texture().await;
-                creatures.push((creature_card, pos));
-            }
+            Card::Creature(creature_card) => creatures.push((creature_card, pos)),
             Card::Effect(effect_card) => todo!(),
         }
 
         self.selected_card = -1;
 
         self.update_card_to_screen();
-        // match self.hovered_card {
-        //     (-1) => {}
-        //     (_) => {}
-        // }
     }
 
     /// Update the size and position of the screen to fit the screen size

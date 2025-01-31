@@ -1,16 +1,14 @@
 use macroquad::{
-    color::{Color, BLACK, BLUE, DARKGREEN, GREEN, LIME},
+    color::{Color, BLACK, BLUE, GREEN, LIME, WHITE},
     input::mouse_position,
-    math::Rect,
+    math::{vec2, Rect, Vec2},
     shapes::{draw_poly, draw_rectangle, draw_rectangle_lines},
     text::{draw_multiline_text, draw_text},
-    texture::{draw_texture, load_texture, Texture2D},
+    texture::{draw_texture, draw_texture_ex, load_texture, DrawTextureParams, Texture2D},
     time::get_time,
 };
 
 use super::{effect::Effect, life::HasLife};
-
-// TODO: complete overtime
 
 pub enum Card {
     Creature(CreatureCard),
@@ -40,7 +38,9 @@ pub struct CreatureCard {
     img_path: &'static str,
     nb_animation_frame: usize,
     current_animation_frame: usize,
-    texture: Vec<Texture2D>,
+    picture: Option<Texture2D>,
+    animation: Vec<Texture2D>,
+    animation_time_per_frame: f64,
     time_elapsed: f64,
 }
 
@@ -51,6 +51,7 @@ impl CreatureCard {
         movement: u32,
         img_path: &'static str,
         nb_animation_frame: usize, // TODO will added automaticly based on the number of file with the name in creature assets
+        animation_time_per_frame: f64,
     ) -> Self {
         CreatureCard {
             basic_info,
@@ -60,35 +61,57 @@ impl CreatureCard {
             img_path,
             nb_animation_frame,
             current_animation_frame: 0,
-            texture: Vec::new(),
+            picture: None,
+            animation: Vec::new(),
+            animation_time_per_frame,
             time_elapsed: 0.,
         }
     }
 
     pub async fn load_texture(&mut self) {
         for i in 0..self.nb_animation_frame {
-            self.texture.push(
+            self.animation.push(
                 load_texture(&format!("{}-{}.png", &self.img_path, i))
                     .await
                     .unwrap(),
             );
         }
+        match load_texture(&format!("{}-picture.png", &self.img_path)).await {
+            Ok(picture_texture) => self.picture = Some(picture_texture),
+            Err(_) => {
+                self.picture = Some(
+                    load_texture("creatures/default/default-picture.png")
+                        .await
+                        .unwrap(),
+                )
+            }
+        }
     }
 
+    fn draw_picture(&self, x: f32, y: f32, size: Vec2, color: Color) {
+        draw_texture_ex(
+            &self.picture.clone().unwrap(),
+            x,
+            y,
+            color,
+            DrawTextureParams {
+                dest_size: Some(size),
+                ..Default::default()
+            },
+        );
+    }
     pub fn draw_creature(&mut self, x: f32, y: f32, color: Color) {
         let time = get_time();
         let diff = time - self.time_elapsed;
 
-        // TODO replace the 0.5 by a custom animation speed
-        if diff >= 0.5 {
+        if diff >= self.animation_time_per_frame {
             self.current_animation_frame =
                 (self.current_animation_frame + 1) % self.nb_animation_frame;
             self.time_elapsed = get_time();
         }
 
-        // println!("current_animation_frame: {}", self.current_animation_frame);
         draw_texture(
-            &self.texture.get(self.current_animation_frame).unwrap(),
+            &self.animation.get(self.current_animation_frame).unwrap(),
             x,
             y,
             color,
@@ -134,6 +157,14 @@ impl Card {
         }
     }
 
+    /// Load the textures of a card
+    pub async fn load_texture(&mut self) {
+        match self {
+            Card::Creature(creature_card) => creature_card.load_texture().await,
+            Card::Effect(effect_card) => {}
+        }
+    }
+
     fn get_basic_info(&self) -> &CardBasicInfo {
         match self {
             Card::Creature(creature) => &creature.basic_info,
@@ -172,10 +203,17 @@ impl Card {
             font_color,
         );
 
-        // Picture TODO complete
-        draw_rectangle(x + 6., y + 24., w - 12., h / 3., GREEN);
         match self {
             Card::Creature(creature) => {
+                // Cover Picture
+                match creature.picture {
+                    Some(_) => {
+                        creature.draw_picture(x + 6., y + 24., vec2(w - 12., h / 3.), WHITE);
+                        draw_rectangle_lines(x + 6., y + 24., w - 12., h / 3., 2., BLACK);
+                    }
+                    None => draw_rectangle(x + 6., y + 24., w - 12., h / 3., GREEN),
+                };
+
                 // HP
                 draw_text(
                     &format!("HP: {}/{}", creature.hp_current, creature.hp_max),
@@ -205,6 +243,9 @@ impl Card {
                 );
             }
             Card::Effect(effect) => {
+                // Cover Picture
+                // TODO
+
                 // Effect
                 draw_text(
                     "Effect: TODO",

@@ -111,6 +111,7 @@ async fn main() {
         4,
         "creatures/goblin/goblin",
         2,
+        0.5
     ));
 
     let creature_card2: Card = game::card::Card::Creature(CreatureCard::new(
@@ -125,6 +126,7 @@ async fn main() {
         4,
         "/creatures/monkey_knight/monkey_knight",
         4,
+        0.25,
     ));
 
     let effect_card: Card = game::card::Card::Effect(EffectCard::new(
@@ -141,9 +143,9 @@ async fn main() {
         },
     ));
 
-    ctx.hand.add_card(creature_card);
-    ctx.hand.add_card(effect_card);
-    ctx.hand.add_card(creature_card2);
+    ctx.hand.add_card(creature_card).await;
+    ctx.hand.add_card(effect_card).await;
+    ctx.hand.add_card(creature_card2).await;
 
     loop {
         clear_background(GRAY);
