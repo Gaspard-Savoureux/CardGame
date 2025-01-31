@@ -76,11 +76,11 @@ impl CreatureCard {
                     .unwrap(),
             );
         }
-        match load_texture(&format!("{}-picture.png", &self.img_path)).await {
+        match load_texture(&format!("{}-cover.png", &self.img_path)).await {
             Ok(picture_texture) => self.picture = Some(picture_texture),
             Err(_) => {
                 self.picture = Some(
-                    load_texture("creatures/default/default-picture.png")
+                    load_texture("creatures/default/default-cover.png")
                         .await
                         .unwrap(),
                 )
