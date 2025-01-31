@@ -186,16 +186,11 @@ async fn main() {
             }
         }
 
-        // Draw goblin
-        // draw_texture(&goblin, 8., 8., WHITE);
-
         // Draw creatures
         for (creature, pos) in &mut ctx.creatures {
-            // let IVec2 { x, y } = pos;
-            // let Vec2 { x, y } = map_to_world(IVec2 { x: x - 1, y: y + 1 });
             let Vec2 { x, y } = map_to_world(*pos);
-            creature.draw_creature(x, y - 8., WHITE);
-            // draw_texture(&creature.texture.as_ref().unwrap(), x, y - 8., WHITE);
+            // -16 because the tile heigth are 16 and those of the creature img are 32
+            creature.draw_creature(x, y - 16., WHITE);
         }
 
         // 2D context
