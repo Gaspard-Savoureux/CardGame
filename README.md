@@ -20,7 +20,7 @@ Gif showing the current state of the game:
 2. **Clone the repo:**
 
 ```sh
-git clone https://github.com/Gaspard-Savoureux/CardGame.git
+git clone https://github.com/JoyousOne/CardGame.git
 cd rust-card-game-macroquad
 ```
 
